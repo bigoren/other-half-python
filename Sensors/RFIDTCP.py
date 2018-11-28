@@ -165,7 +165,9 @@ class RFIDTCP(threading.Thread):
         elif self.mission < self.VALID_STATE and is_in_song:
             self.logger.info("Tag with no mission identified when in song, mission: " + format(self.mission, '02x'))
             self.decision_queue.put(DecisionEventType.NEW_MISSION_NO_ACTION)
-            self.send_rfid_response(self.NO_COMMAND, 0)
+            self.send_rfid_response(self.DISPLAY_MISSION, power)
+            self.timer_on_flag = True
+            self.timer_on_time = self.mytime
         elif self.mission >= self.WIN_STATE and not is_in_song:
             self.logger.info("Winning tag identified when not in song, waiting for write before queuing to decision module")
             # dont queue the mission for decisions yet, only after the erase
@@ -175,8 +177,11 @@ class RFIDTCP(threading.Thread):
         elif self.mission < self.VALID_STATE and not is_in_song:
             self.logger.info("Tag with no mission identified when not in song, waiting for write before queuing to decision module")
             # dont queue the mission for decisions yet, only after the write
-            self.new_mission = random.randint(0, 63) & power_mask
-            self.new_mission = self.new_mission | power
+            self.new_mission = random.randint(1, 5) | 0x30
+            print self.new_mission
+            while (self.new_mission == power):
+                print self.new_mission
+                self.new_mission = random.randint(1, 5) | 0x30
             self.new_mission = self.new_mission | self.VALID_STATE
             self.send_rfid_response(self.NEW_MISSION, self.new_mission)
             # we dont set the timer flag because we want the mission to keep on until a song is played
