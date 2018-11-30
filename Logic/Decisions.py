@@ -97,7 +97,9 @@ class Decisions(threading.Thread):
             self.state_token = True
             self.logger.info("Play ended")
         elif msg == DecisionEventType.HB_ALIVE:
-            self.heartbeat_alive = True
+            if not self.heartbeat_alive:
+                self.logger.info("New heartbeat sequence started")
+                self.heartbeat_alive = True
         elif msg == DecisionEventType.HB_DEAD:
             self.heartbeat_alive = False
             self.logger.info("Heartbeat is dead, no RFID game will be played")
