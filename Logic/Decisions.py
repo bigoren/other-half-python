@@ -30,7 +30,7 @@ class DecisionStateType:
 
 class Decisions(threading.Thread):
 
-    song_list = ["sun.wav", "hakuna.wav", "right_here_right_now.wav"]
+    song_list = ["dorothy.wav", "mumminim.wav", "mantequilla.wav", "toccata.wav"]
     transitions_list = ["laugh.wav", "kivshi.wav"]
     game_transitions_list = ["game_intro.wav"]
     win_random_list = ["win_sex.wav", "win_warmth.wav", "win_drugs.wav"]
