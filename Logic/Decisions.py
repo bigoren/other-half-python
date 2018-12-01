@@ -113,6 +113,7 @@ class Decisions(threading.Thread):
                 song = random.choice(self.song_list)
                 while song == self.last_played_song:
                     song = random.choice(self.song_list)
+                self.logger.info("selected song is " + song)
                 self.player_queue.put(song)
                 self.last_played_song = song
                 self.song_flag = True
@@ -126,6 +127,7 @@ class Decisions(threading.Thread):
                     transition = random.choice(self.transitions_list)
                     while transition == self.last_played_trans:
                         transition = random.choice(self.transitions_list)
+                self.logger.info("selected transition is " + transition)
                 self.player_queue.put(transition)
                 self.last_played_trans = transition
                 self.state = DecisionStateType.SONG_PLAY

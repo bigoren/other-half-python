@@ -131,11 +131,11 @@ class RFIDTCP(threading.Thread):
             elif self.write_status == self.WRITE_SUCCESS:
                 self.logger.info("Write to tag successful")
                 self.new_mission_written = True
-                if self.new_mission:
+                if self.new_mission == power:
+                    self.decision_queue.put(DecisionEventType.WIN_ACTION_DONE)
+                else:
                     self.decision_queue.put(DecisionEventType.NEW_MISSION_ACTION_DONE)
                     self.mission = self.new_mission
-                else:
-                    self.decision_queue.put(DecisionEventType.WIN_ACTION_DONE)
                 self.logger.info("Written mission: 0x" + format(self.new_mission, '02x'))
             else:
                 self.logger.warning("Undefined write status content!" + str(self.write_status))
@@ -171,18 +171,20 @@ class RFIDTCP(threading.Thread):
         elif self.mission >= self.WIN_STATE and not is_in_song:
             self.logger.info("Winning tag identified when not in song, waiting for write before queuing to decision module")
             # dont queue the mission for decisions yet, only after the erase
-            self.new_mission = 0
+            self.new_mission = power
             self.send_rfid_response(self.WIN_AND_ERASE, self.new_mission)
             # we dont set the timer flag because we want the win pattern to keep on until a song is played
         elif self.mission < self.VALID_STATE and not is_in_song:
             self.logger.info("Tag with no mission identified when not in song, waiting for write before queuing to decision module")
             # dont queue the mission for decisions yet, only after the write
-            self.new_mission = random.randint(1, 5) | 0x30
+            self.new_mission = power & power_mask
+            self.new_mission = self.new_mission | random.randint(1, 5)
             print self.new_mission
             while (self.new_mission == power):
                 print self.new_mission
-                self.new_mission = random.randint(1, 5) | 0x30
-            self.new_mission = self.new_mission | self.VALID_STATE
+                self.new_mission = power & power_mask
+                self.new_mission = self.new_mission | random.randint(1, 5)
+            #self.new_mission = self.new_mission | self.VALID_STATE
             self.send_rfid_response(self.NEW_MISSION, self.new_mission)
             # we dont set the timer flag because we want the mission to keep on until a song is played
         elif is_in_song:    # valid mission case but in song
