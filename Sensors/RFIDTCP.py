@@ -184,7 +184,7 @@ class RFIDTCP(threading.Thread):
                 print self.new_mission
                 self.new_mission = power & power_mask
                 self.new_mission = self.new_mission | random.randint(1, 5)
-            #self.new_mission = self.new_mission | self.VALID_STATE
+            self.new_mission = self.new_mission | self.VALID_STATE
             self.send_rfid_response(self.NEW_MISSION, self.new_mission)
             # we dont set the timer flag because we want the mission to keep on until a song is played
         elif is_in_song:    # valid mission case but in song
