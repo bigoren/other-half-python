@@ -52,6 +52,8 @@ class RFIDTCP(threading.Thread):
         self.conn = None
         self.mission = 0
         self.new_mission = 0
+        self.power = 0
+        self.power_mask = 0
         self.last_heartbeat_time = datetime.datetime.now()
         self.write_status = 0
         self.new_mission_written = False
@@ -131,7 +133,7 @@ class RFIDTCP(threading.Thread):
             elif self.write_status == self.WRITE_SUCCESS:
                 self.logger.info("Write to tag successful")
                 self.new_mission_written = True
-                if self.new_mission == power:
+                if self.new_mission == self.power:
                     self.decision_queue.put(DecisionEventType.WIN_ACTION_DONE)
                 else:
                     self.decision_queue.put(DecisionEventType.NEW_MISSION_ACTION_DONE)
@@ -154,8 +156,8 @@ class RFIDTCP(threading.Thread):
     def handle_tag(self, byte_arr):
         is_in_song = self.decisions.get_is_in_song()
         self.mission = byte_arr[5]
-        power = byte_arr[6]
-        power_mask = byte_arr[7]
+        self.power = byte_arr[6]
+        self.power_mask = byte_arr[7]
         if self.mission >= self.WIN_STATE and is_in_song:
             self.logger.info("Winning tag identified when in song, mission: " + format(self.mission, '02x'))
             self.decision_queue.put(DecisionEventType.WIN_NO_ACTION)
@@ -165,24 +167,24 @@ class RFIDTCP(threading.Thread):
         elif self.mission < self.VALID_STATE and is_in_song:
             self.logger.info("Tag with no mission identified when in song, mission: " + format(self.mission, '02x'))
             self.decision_queue.put(DecisionEventType.NEW_MISSION_NO_ACTION)
-            self.send_rfid_response(self.DISPLAY_MISSION, power)
+            self.send_rfid_response(self.DISPLAY_MISSION, self.power)
             self.timer_on_flag = True
             self.timer_on_time = self.mytime
         elif self.mission >= self.WIN_STATE and not is_in_song:
             self.logger.info("Winning tag identified when not in song, waiting for write before queuing to decision module")
             # dont queue the mission for decisions yet, only after the erase
-            self.new_mission = power
+            self.new_mission = self.power
             self.send_rfid_response(self.WIN_AND_ERASE, self.new_mission)
             # we dont set the timer flag because we want the win pattern to keep on until a song is played
         elif self.mission < self.VALID_STATE and not is_in_song:
             self.logger.info("Tag with no mission identified when not in song, waiting for write before queuing to decision module")
             # dont queue the mission for decisions yet, only after the write
-            self.new_mission = power & power_mask
+            self.new_mission = self.power & self.power_mask
             self.new_mission = self.new_mission | random.randint(1, 5)
             print self.new_mission
-            while (self.new_mission == power):
+            while (self.new_mission == self.power):
                 print self.new_mission
-                self.new_mission = power & power_mask
+                self.new_mission = self.power & self.power_mask
                 self.new_mission = self.new_mission | random.randint(1, 5)
             self.new_mission = self.new_mission | self.VALID_STATE
             self.send_rfid_response(self.NEW_MISSION, self.new_mission)
