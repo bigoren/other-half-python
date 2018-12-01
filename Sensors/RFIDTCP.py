@@ -173,7 +173,7 @@ class RFIDTCP(threading.Thread):
         elif self.mission >= self.WIN_STATE and not is_in_song:
             self.logger.info("Winning tag identified when not in song, waiting for write before queuing to decision module")
             # dont queue the mission for decisions yet, only after the erase
-            self.new_mission = self.power
+            self.new_mission = self.power & ~self.VALID_STATE
             self.send_rfid_response(self.WIN_AND_ERASE, self.new_mission)
             # we dont set the timer flag because we want the win pattern to keep on until a song is played
         elif self.mission < self.VALID_STATE and not is_in_song:
