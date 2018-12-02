@@ -108,6 +108,7 @@ class RFIDTCP(threading.Thread):
             except Exception as e:
                 self.logger.warning(str(e))
                 self.logger.warning("RFID socket timed out. will disconnect socket and listen again")
+                self.decision_queue.put(DecisionEventType.HB_DEAD)
                 self.conn.close()
 
     def handle_msg(self, msg):
