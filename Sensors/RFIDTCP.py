@@ -133,7 +133,7 @@ class RFIDTCP(threading.Thread):
             elif self.write_status == self.WRITE_SUCCESS:
                 self.logger.info("Write to tag successful")
                 self.new_mission_written = True
-                if self.new_mission == self.power:
+                if self.new_mission == self.power & ~self.VALID_STATE:
                     self.decision_queue.put(DecisionEventType.WIN_ACTION_DONE)
                 else:
                     self.decision_queue.put(DecisionEventType.NEW_MISSION_ACTION_DONE)
